@@ -1,0 +1,55 @@
+# OSX
+.DS_Store
+
+# Xcode
+build/
+Pods
+xcuserdata
+*.ipa
+*.dSYM.zip
+
+# Android/IntelliJ
+build/
+.idea
+.gradle
+local.properties
+*.iml
+*.hprof
+*.keystore
+
+# yarn
+node_modules/
+yarn-error.log
+
+# fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/google_play_key.json
+
+# Cloud functions
+/functions/data/*.json
+/functions/*.log
+/functions/.env
+firebase-debug.log
+
+# Config
+/.env
+android/app/google-services.json
+ios/ViaApp/GoogleService-Info.plist
+
+# Firebase
+.firebase
+
+# Detox
+e2e/.artifacts/
+
+# Metro
+.metro-health-check*
+
+# Bundler
+.bundle/
+vendor/
+
+# Ruby
+.ruby-version
