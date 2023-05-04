@@ -7,6 +7,9 @@ import {
   TouchableOpacity,
   Switch,
 } from 'react-native';
+import Video from 'react-native-video';
+// import VideoPlayer from 'react-native-video-controls';
+import VideoPlayer from 'react-native-video-player';
 import Text from 'react-native-ui-lib/text';
 import View from 'react-native-ui-lib/view';
 import Button from 'react-native-ui-lib/button';
@@ -14,6 +17,7 @@ import R from 'res/R';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { IoniconsIcon, FontAwesomeIcon } from 'res/icons';
 import { createSelfIntroVideo } from 'utils/helper/help';
+import { ScrollView } from 'react-native-gesture-handler';
 
 const ToggleItem = (props: any) => {
   const { icon, text, toggleSwitch } = props;
@@ -85,6 +89,8 @@ const PostScreen = () => {
     createSelfIntroVideo(params.imageUri, params.text, params.audioUri);
   };
 
+  const [uri, setUri] = useState('');
+
   return (
     <GradientView style={{ flex: 1 }}>
       <SafeAreaView
@@ -103,54 +109,104 @@ const PostScreen = () => {
       </SafeAreaView>
       {/* <View flex bg-white /> */}
       <View flex bg-light style={{ justifyContent: 'flex-end' }}>
-        <View flex padding-10 style={{ justifyContent: 'center' }}>
-          <ToggleItem
-            icon="pinterest"
-            text="#Pinterest"
-            toggleSwitch={{
-              value: togglePinterest,
-              toggle: setTogglePinterest,
+        <View>
+          <Video
+            // source={require('res/r.mp4')}
+            source={{ uri: uri }}
+            style={{
+              margin: 12,
+              backgroundColor: R.colours.gradient1,
+              height: 200,
+              borderRadius: 5,
             }}
+            resizeMode="cover"
+            repeat={true}
+            controls={true}
           />
-          <ToggleItem
-            icon="facebook-f"
-            text="#FaceBook"
-            toggleSwitch={{
-              value: toggleFaceBook,
-              toggle: setToggleFaceBook,
+          {/* <VideoPlayer
+            source={{ uri: uri }}
+            style={{
+              marginTop: 20,
+              margin: 12,
+              backgroundColor: 'black',
+              borderRadius: 10,
+              height: 200,
+              flex: 0,
             }}
-          />
-          <ToggleItem
-            icon="twitter"
-            text="#Twitter"
-            toggleSwitch={{
-              value: toggleTwitter,
-              toggle: setToggleTwitter,
+          /> */}
+          {/* <VideoPlayer
+            // video={{ uri: uri }}
+            video={require('res/r.mp4')}
+            videoWidth={1600}
+            videoHeight={900}
+            thumbnail={{ uri: 'https://i.picsum.photos/id/866/1600/900.jpg' }}
+          /> */}
+          <Button
+            style={{
+              ...styles.signInButton,
             }}
-          />
-          <ToggleItem
-            icon="linkedin"
-            text="#LinkedIn"
-            toggleSwitch={{
-              value: toggleLinkedIn,
-              toggle: setToggleLinkedIn,
-            }}
-          />
+            onPress={() => {
+              setUri('https://vjs.zencdn.net/v/oceans.mp4');
+              console.log(uri);
+            }}>
+            <View>
+              <Text text75Bold center light>
+                {'Generate Video'}
+              </Text>
+            </View>
+          </Button>
         </View>
-        <Button
-          style={{
-            ...styles.signInButton,
-            // backgroundColor:
-            //   imageUri.length && audioUri.length ? R.colours.greenDark : '#8a8',
-          }}
-          onPress={handlePost}>
-          <View>
-            <Text text75Bold center light>
-              {'Post Now'}
-            </Text>
+        <ScrollView>
+          {/* End SignIn Button */}
+          <View flex padding-10 style={{ justifyContent: 'center' }}>
+            <ToggleItem
+              icon="pinterest"
+              text="#Pinterest"
+              toggleSwitch={{
+                value: togglePinterest,
+                toggle: setTogglePinterest,
+              }}
+            />
+            <ToggleItem
+              icon="facebook-f"
+              text="#FaceBook"
+              toggleSwitch={{
+                value: toggleFaceBook,
+                toggle: setToggleFaceBook,
+              }}
+            />
+            <ToggleItem
+              icon="twitter"
+              text="#Twitter"
+              toggleSwitch={{
+                value: toggleTwitter,
+                toggle: setToggleTwitter,
+              }}
+            />
+            <ToggleItem
+              icon="linkedin"
+              text="#LinkedIn"
+              toggleSwitch={{
+                value: toggleLinkedIn,
+                toggle: setToggleLinkedIn,
+              }}
+            />
           </View>
-        </Button>
-        {/* End SignIn Button */}
+          <Button
+            style={{
+              ...styles.signInButton,
+              // backgroundColor:
+              //   imageUri.length && audioUri.length ? R.colours.greenDark : '#8a8',
+            }}
+            onPress={handlePost}>
+            <View>
+              <Text text75Bold center light>
+                {'Post Now'}
+              </Text>
+            </View>
+          </Button>
+          {/* End SignIn Button */}
+        </ScrollView>
       </View>
     </GradientView>
   );

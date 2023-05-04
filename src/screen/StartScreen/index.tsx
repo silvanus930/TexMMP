@@ -72,7 +72,7 @@ const StartScreen = () => {
       <ImageSequence
         images={imageSources}
         startFrameIndex={0}
-        style={{ flex: 2 }}
+        style={{ flex: 1.5, marginTop: 50 }}
       />
       {/* <FastImage
         resizeMode="contain"
