@@ -15,7 +15,6 @@ build/
 local.properties
 *.iml
 *.hprof
-*.keystore
 
 # yarn
 node_modules/

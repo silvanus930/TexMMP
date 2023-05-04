@@ -114,7 +114,7 @@ android {
         debug {
             storeFile file('debug.keystore')
             storePassword 'android'
-            keyAlias 'androiddebugkey'
+            keyAlias 'AndroidDebugKey'
             keyPassword 'android'
         }
     }
