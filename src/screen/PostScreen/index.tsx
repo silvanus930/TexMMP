@@ -86,6 +86,9 @@ const PostScreen = () => {
   const [toggleLinkedIn, setToggleLinkedIn] = useState(false);
 
   const handlePost = () => {
+    console.log(params.imageUri);
+    console.log(params.text);
+    console.log(params.audioUri);
     createSelfIntroVideo(params.imageUri, params.text, params.audioUri);
   };
 

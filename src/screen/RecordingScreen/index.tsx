@@ -1,7 +1,7 @@
 /* eslint-disable react-native/no-inline-styles */
 import GradientView from 'component/GradientView';
 import React, {useState} from 'react';
-import {SafeAreaView, StyleSheet, TouchableOpacity} from 'react-native';
+import {SafeAreaView, StyleSheet, TouchableOpacity, Platform} from 'react-native';
 import Text from 'react-native-ui-lib/text';
 import View from 'react-native-ui-lib/view';
 import Button from 'react-native-ui-lib/button';
@@ -27,7 +27,7 @@ const Card = (props: any) => {
     <TouchableOpacity activeOpacity={0.7} onPress={onPress}>
       <GradientView
         style={{
-          height: 150,
+          height: Platform.OS === 'ios' ? 150 : 130,
           borderRadius: 16,
           marginVertical: 10,
           alignItems: 'center',
@@ -77,6 +77,7 @@ const TakeSelfiModal = (props: any) => {
   };
 
   const handleOpenCamera = async () => {
+    console.log('Opening Camera');
     try {
       await launchCamera({mediaType: 'photo'}, async (res: any) => {
         if (res.assets) {

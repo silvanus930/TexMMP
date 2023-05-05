@@ -9,7 +9,7 @@ export const uploadImageFile = async local_file_path => {
     const formData = new FormData();
     formData.append('file', {
       uri: local_file_path,
-      name: local_file_path.split('/').pop(),
+      name: 'temp.jpg',
       type: extension,
     });
     console.log('Form data: ' + JSON.stringify(formData));
