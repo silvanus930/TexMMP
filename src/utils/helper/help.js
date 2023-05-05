@@ -113,16 +113,35 @@ export async function createSelfIntroVideo(
   }
 
   // get result
-  var timerId = setInterval(async () => {
-    const response = await getTalkById(talk_id);
+  let response = await waitForTalkResult(talk_id);
+  // var timerId = setInterval(async () => {
+  //   response = await getTalkById(talk_id);
 
-    if (response.status == 'done') {
-      clearInterval(timerId);
-      console.log('Response: ' + response);
-      console.log('Response URL: ' + response.result_url);
-      return response.result_url;
-    }
-  }, 2000);
+  //   if (response.status == 'done') {
+  //     clearInterval(timerId);
+  //     console.log('Response URL: ' + response.result_url);
+  //   }
+  // }, 2000);
+  console.log('Returing Response URL: ' + response);
+  return response;
+}
+
+function waitForTalkResult(talk_id) {
+  return new Promise(async (resolve, reject) => {
+    const timerId = setInterval(async () => {
+      try {
+        const response = await getTalkById(talk_id);
+        if (response.status === 'done') {
+          clearInterval(timerId);
+          console.log('Resonese URL:', response.result_url);
+          resolve(response.result_url);
+        }
+      } catch (error) {
+        clearInterval(timerId);
+        reject(error);
+      }
+    }, 2000);
+  });
 }
 
 const saveBlobToFile = async (blobData, filePath) => {

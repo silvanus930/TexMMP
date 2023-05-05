@@ -34,7 +34,7 @@ export const uploadImageFile = async local_file_path => {
 export const uploadAudioFile = async local_file_path => {
   try {
     console.log('Uploading file: ' + local_file_path);
-    const extension = 'mpeg/audio';
+    const extension = 'audio/mpeg';
     console.log('Extension: ' + extension);
     const formData = new FormData();
     formData.append('file', {

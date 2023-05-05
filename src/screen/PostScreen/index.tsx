@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Switch,
+  ActivityIndicator,
 } from 'react-native';
 import Video from 'react-native-video';
 // import VideoPlayer from 'react-native-video-controls';
@@ -18,6 +19,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { IoniconsIcon, FontAwesomeIcon } from 'res/icons';
 import { createSelfIntroVideo } from 'utils/helper/help';
 import { ScrollView } from 'react-native-gesture-handler';
+import TextField from 'react-native-ui-lib/textField';
 
 const ToggleItem = (props: any) => {
   const { icon, text, toggleSwitch } = props;
@@ -84,12 +86,25 @@ const PostScreen = () => {
   const [toggleFaceBook, setToggleFaceBook] = useState(false);
   const [toggleTwitter, setToggleTwitter] = useState(false);
   const [toggleLinkedIn, setToggleLinkedIn] = useState(false);
+  const [text, setText] = useState('');
+  const [isWaiting, setIsWaiting] = useState(false);
 
-  const handlePost = () => {
-    console.log(params.imageUri);
-    console.log(params.text);
-    console.log(params.audioUri);
-    createSelfIntroVideo(params.imageUri, params.text, params.audioUri);
+  const handlePost = async () => {
+    try {
+      setIsWaiting(true);
+      const result = await createSelfIntroVideo(
+        params.imageUri,
+        params.text,
+        params.audioUri,
+      );
+      console.log('result: ' + result);
+      setIsWaiting(false);
+      setText(result);
+      setUri(result);
+    } catch (error) {
+      console.log('createSelfIntroVideo Error: ');
+      setIsWaiting(false);
+    }
   };
 
   const [uri, setUri] = useState('');
@@ -126,36 +141,19 @@ const PostScreen = () => {
             repeat={true}
             controls={true}
           />
-          {/* <VideoPlayer
-            source={{ uri: uri }}
-            style={{
-              marginTop: 20,
-              margin: 12,
-              backgroundColor: 'black',
-              borderRadius: 10,
-              height: 200,
-              flex: 0,
-            }}
-          /> */}
-          {/* <VideoPlayer
-            // video={{ uri: uri }}
-            video={require('res/r.mp4')}
-            videoWidth={1600}
-            videoHeight={900}
-            thumbnail={{ uri: 'https://i.picsum.photos/id/866/1600/900.jpg' }}
-          /> */}
           <Button
             style={{
               ...styles.signInButton,
             }}
-            onPress={() => {
-              setUri('https://vjs.zencdn.net/v/oceans.mp4');
-              console.log(uri);
-            }}>
+            onPress={handlePost}>
             <View>
-              <Text text75Bold center light>
-                {'Generate Video'}
-              </Text>
+              {!isWaiting ? (
+                <Text text75Bold center light>
+                  {'Generate Video'}
+                </Text>
+              ) : (
+                <ActivityIndicator />
+              )}
             </View>
           </Button>
         </View>
@@ -195,13 +193,21 @@ const PostScreen = () => {
               }}
             />
           </View>
+          <Text text80Bold purple marginL-20>
+            Video Url #
+          </Text>
+          <TextField
+            hideUnderline
+            multiline
+            containerStyle={styles.textField}
+            value={text}
+            onChangeText={value => setText(value)}
+          />
           <Button
             style={{
               ...styles.signInButton,
-              // backgroundColor:
-              //   imageUri.length && audioUri.length ? R.colours.greenDark : '#8a8',
             }}
-            onPress={handlePost}>
+            onPress={() => {}}>
             <View>
               <Text text75Bold center light>
                 {'Post Now'}
@@ -221,7 +227,7 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: R.colours.light,
     borderRadius: 20,
-    height: 300,
+    height: 100,
     shadowColor: R.colours.dark,
     shadowOffset: { width: 5, height: 10 },
     shadowOpacity: 0.25,

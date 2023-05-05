@@ -1,28 +1,34 @@
 /* eslint-disable react-native/no-inline-styles */
 import GradientView from 'component/GradientView';
-import React, {useState} from 'react';
-import {SafeAreaView, StyleSheet, TouchableOpacity, Platform} from 'react-native';
+import React, { useState } from 'react';
+import {
+  SafeAreaView,
+  StyleSheet,
+  TouchableOpacity,
+  Platform,
+} from 'react-native';
 import Text from 'react-native-ui-lib/text';
 import View from 'react-native-ui-lib/view';
 import Button from 'react-native-ui-lib/button';
 import Modal from 'react-native-ui-lib/modal';
 import R from 'res/R';
-import {useNavigation, useRoute} from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import {
   IoniconsIcon,
   FontAwesomeIcon,
   MaterialIcons,
   FontAwesome5Icon,
 } from 'res/icons';
-import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
+import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import FastImage from 'react-native-fast-image';
 import DocumentPicker from 'react-native-document-picker';
 import AudioRecorderPlayer from 'react-native-audio-recorder-player';
+import { PERMISSIONS, request } from 'react-native-permissions';
 
 const audioRecorderPlayer = new AudioRecorderPlayer();
 
 const Card = (props: any) => {
-  const {icon, text, onPress} = props;
+  const { icon, text, onPress } = props;
   return (
     <TouchableOpacity activeOpacity={0.7} onPress={onPress}>
       <GradientView
@@ -36,7 +42,7 @@ const Card = (props: any) => {
           bg-light
           center
           marginT-20
-          style={{width: 70, height: 70, borderRadius: 100}}>
+          style={{ width: 70, height: 70, borderRadius: 100 }}>
           <FontAwesomeIcon name={icon} size={30} color={R.colours.greenDark} />
         </View>
         <Text marginT-10 text80Bold light>
@@ -48,7 +54,7 @@ const Card = (props: any) => {
 };
 
 const TakeSelfiModal = (props: any) => {
-  const {show, setShow, setUri} = props;
+  const { show, setShow, setUri } = props;
   const [imagePath, setImagePath] = useState('');
   const handleClose = () => {
     setShow(!show);
@@ -58,35 +64,50 @@ const TakeSelfiModal = (props: any) => {
     setShow(!show);
   };
   const handleOpenImageLibrary = async () => {
-    try {
-      await launchImageLibrary(
-        {mediaType: 'photo', selectionLimit: 1},
-        async (res: any) => {
-          if (res.assets) {
-            const imageFile = res.assets[0];
-            setImagePath(imageFile.uri);
-            console.log(imageFile);
-          } else {
-            console.log(res);
-          }
-        },
-      );
-    } catch (error) {
-      console.log('IMAGE_PICKER_SELECTION_FAILED', error);
+    const result =
+      (Platform.OS === 'android' &&
+        (await request(PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE))) ||
+      'granted';
+    if (result !== 'denied') {
+      try {
+        await launchImageLibrary(
+          { mediaType: 'photo', selectionLimit: 1 },
+          async (res: any) => {
+            if (res.assets) {
+              const imageFile = res.assets[0];
+              setImagePath(imageFile.uri);
+              console.log(imageFile);
+            } else {
+              console.log(res);
+            }
+          },
+        );
+      } catch (error) {
+        console.log('IMAGE_PICKER_SELECTION_FAILED', error);
+      }
+    } else {
+      console.log(result);
     }
   };
 
   const handleOpenCamera = async () => {
-    console.log('Opening Camera');
-    try {
-      await launchCamera({mediaType: 'photo'}, async (res: any) => {
-        if (res.assets) {
-          const imageFile = res.assets[0];
-          console.log(imageFile);
-        }
-      });
-    } catch (error) {
-      console.log('CAMERA_SELECTION_FAILED', error);
+    const result =
+      Platform.OS === 'ios'
+        ? await request(PERMISSIONS.IOS.CAMERA)
+        : await request(PERMISSIONS.ANDROID.CAMERA);
+    if (result !== 'denied') {
+      try {
+        await launchCamera({ mediaType: 'photo' }, async (res: any) => {
+          if (res.assets) {
+            const imageFile = res.assets[0];
+            console.log(imageFile);
+          }
+        });
+      } catch (error) {
+        console.log('CAMERA_SELECTION_FAILED', error);
+      }
+    } else {
+      console.log(result);
     }
   };
 
@@ -128,8 +149,8 @@ const TakeSelfiModal = (props: any) => {
                 }}>
                 <FastImage
                   resizeMode="stretch"
-                  style={{width: 350, height: 350, borderRadius: 10}}
-                  source={{uri: imagePath}}
+                  style={{ width: 350, height: 350, borderRadius: 10 }}
+                  source={{ uri: imagePath }}
                 />
               </View>
             )}
@@ -137,7 +158,7 @@ const TakeSelfiModal = (props: any) => {
           <View
             row
             marginR-10
-            style={{justifyContent: 'flex-end', alignItems: 'flex-end'}}>
+            style={{ justifyContent: 'flex-end', alignItems: 'flex-end' }}>
             <TouchableOpacity
               activeOpacity={0.7}
               style={{
@@ -195,7 +216,7 @@ const TakeSelfiModal = (props: any) => {
 };
 
 const TakeVoiceModal = (props: any) => {
-  const {show, setShow, setUri} = props;
+  const { show, setShow, setUri } = props;
   const handleClose = () => {
     setShow(!show);
   };
@@ -345,7 +366,7 @@ const TakeVoiceModal = (props: any) => {
           <View
             row
             marginR-10
-            style={{justifyContent: 'flex-end', alignItems: 'flex-end'}}>
+            style={{ justifyContent: 'flex-end', alignItems: 'flex-end' }}>
             <TouchableOpacity
               activeOpacity={0.7}
               style={{
@@ -415,9 +436,9 @@ const RecordingScreen = () => {
   const [audioUri, setAudioUri] = useState('');
 
   return (
-    <GradientView style={{flex: 1}}>
+    <GradientView style={{ flex: 1 }}>
       <SafeAreaView
-        style={{flexDirection: 'row', margin: 10, alignItems: 'center'}}>
+        style={{ flexDirection: 'row', margin: 10, alignItems: 'center' }}>
         <IoniconsIcon
           name="ios-chevron-back-outline"
           size={30}
@@ -431,8 +452,8 @@ const RecordingScreen = () => {
         </Text>
       </SafeAreaView>
       {/* <View flex bg-white /> */}
-      <View flex bg-light style={{justifyContent: 'flex-end'}}>
-        <View flex padding-10 style={{justifyContent: 'center'}}>
+      <View flex bg-light style={{ justifyContent: 'flex-end' }}>
+        <View flex padding-10 style={{ justifyContent: 'center' }}>
           <Card
             icon="camera-retro"
             text="Take a Selfie"
@@ -499,7 +520,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     height: 300,
     shadowColor: R.colours.dark,
-    shadowOffset: {width: 5, height: 10},
+    shadowOffset: { width: 5, height: 10 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 10,
@@ -512,7 +533,7 @@ const styles = StyleSheet.create({
     margin: 20,
     marginBottom: 30,
     shadowColor: R.colours.dark,
-    shadowOffset: {width: 5, height: 5},
+    shadowOffset: { width: 5, height: 5 },
     shadowOpacity: 0.25,
     shadowRadius: 3,
     elevation: 5,
