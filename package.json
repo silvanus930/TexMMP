@@ -13,6 +13,7 @@
     "ios:pod-update": "cd ./ios && bundle exec pod update && bundle exec pod install --repo-update",
     "ios:xcode": "cd ./ios && xcodebuild -project TexMMP.xcodeproj -target TexMMP -showBuildSettings",
     "android:clean": "cd android && ./gradlew clean && cd .. && rm -rf ./android/app/src/main/res/drawable-*/",
+    "android:b": "react-native run-android --variant=release",
     "clear": "watchman watch-del-all && rm -rf node_modules && rm -rf $TMPDIR/react-* && rm -rf $TMPDIR/metro-* && rm -rf $TMPDIR/haste-* && yarn cache clean && yarn install"
   },
   "dependencies": {

@@ -111,6 +111,12 @@ android {
         }
     }
     signingConfigs {
+        release {
+            storeFile file('debug.keystore')
+            storePassword 'android'
+            keyAlias 'AndroidDebugKey'
+            keyPassword 'android'
+        }
         debug {
             storeFile file('debug.keystore')
             storePassword 'android'
