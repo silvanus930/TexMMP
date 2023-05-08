@@ -1,6 +1,6 @@
 /* eslint-disable react-native/no-inline-styles */
 import GradientView from 'component/GradientView';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   SafeAreaView,
   StyleSheet,
@@ -31,6 +31,7 @@ import {
   uploadImageFile,
 } from 'src/utils/helper/Utils/uploadUtil';
 import RNFetchBlob from 'rn-fetch-blob';
+import { checkAudioPermission, checkCameraPermission } from 'src/utils/permission';
 
 const audioRecorderPlayer = new AudioRecorderPlayer();
 
@@ -112,36 +113,9 @@ const TakeSelfiModal = (props: any) => {
     }
   };
 
-  const handleOpenImageLibrary = async () => {
-    const result =
-      (Platform.OS === 'android' &&
-        (await request(PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE))) ||
-      'granted';
-    if (result !== 'denied') {
-      try {
-        await launchImageLibrary(
-          { mediaType: 'photo', selectionLimit: 1 },
-          async (res: any) => {
-            if (res.assets) {
-              const imageFile = res.assets[0];
-              setImagePath(imageFile.uri);
-              console.log(imageFile);
-            } else {
-              console.log(res);
-            }
-          },
-        );
-      } catch (error) {
-        console.log('IMAGE_PICKER_SELECTION_FAILED', error);
-      }
-    } else {
-      console.log(result);
-    }
-  };
-
   const handleOpenCamera = async () => {
     try {
-      await checkAndroidPermission();
+      await checkCameraPermission();
       try {
         await launchCamera({ mediaType: 'photo' }, async (res: any) => {
           if (res.assets) {
@@ -154,37 +128,6 @@ const TakeSelfiModal = (props: any) => {
         console.log('CAMERA_SELECTION_FAILED', error);
       }
     } catch (error) {}
-  };
-
-  const checkAndroidPermission = async () => {
-    if (Platform.OS === 'android') {
-      try {
-        const grants = await PermissionsAndroid.requestMultiple([
-          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-          PermissionsAndroid.PERMISSIONS.CAMERA,
-        ]);
-
-        console.log('write external stroage', grants);
-
-        if (
-          grants['android.permission.WRITE_EXTERNAL_STORAGE'] ===
-            PermissionsAndroid.RESULTS.GRANTED &&
-          grants['android.permission.READ_EXTERNAL_STORAGE'] ===
-            PermissionsAndroid.RESULTS.GRANTED &&
-          grants['android.permission.CAMERA'] ===
-            PermissionsAndroid.RESULTS.GRANTED
-        ) {
-          console.log('Permissions granted');
-        } else {
-          console.log('All required permissions not granted');
-          return grants;
-        }
-      } catch (err) {
-        console.warn(err);
-        return;
-      }
-    }
   };
 
   return (
@@ -304,49 +247,14 @@ const TakeVoiceModal = (props: any) => {
     setShow(!show);
   };
 
-  const [recordSecs, setRecordSecs] = useState(0);
-  const [recordTime, setRecordTime] = useState('00:00:00');
-  const [currentPositionSec, setCurrentPositionSec] = useState(0);
-  const [currentDurationSec, setCurrentDurationSec] = useState(0);
-  const [playTime, setPlayTime] = useState('00:00:00');
-  const [duration, setDuration] = useState('00:00:00');
+  useEffect(() => {
+    console.log(show);
+  }, [show, setShow, setUri])
 
   const [isRecording, setIsRecording] = useState(false);
   const [audioPath, setAudioPath] = useState('');
 
-  const checkAndroidPermission = async () => {
-    if (Platform.OS === 'android') {
-      try {
-        const grants = await PermissionsAndroid.requestMultiple([
-          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-          PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
-        ]);
-
-        console.log('write external stroage', grants);
-
-        if (
-          grants['android.permission.WRITE_EXTERNAL_STORAGE'] ===
-            PermissionsAndroid.RESULTS.GRANTED &&
-          grants['android.permission.READ_EXTERNAL_STORAGE'] ===
-            PermissionsAndroid.RESULTS.GRANTED &&
-          grants['android.permission.RECORD_AUDIO'] ===
-            PermissionsAndroid.RESULTS.GRANTED
-        ) {
-          console.log('Permissions granted');
-        } else {
-          console.log('All required permissions not granted');
-          return grants;
-        }
-      } catch (err) {
-        console.warn(err);
-        return;
-      }
-    }
-  };
-
   const onStartRecord = async () => {
-    // const path = 'test.mp3';
     const dirs = RNFetchBlob.fs.dirs;
     const path = Platform.select({
       ios: 'hello.m4a',
@@ -356,13 +264,6 @@ const TakeVoiceModal = (props: any) => {
     try {
       setIsRecording(true);
       const result = await audioRecorderPlayer.startRecorder(path);
-      // audioRecorderPlayer.addRecordBackListener(e => {
-      //   setRecordSecs(e.currentPosition);
-      //   setRecordTime(
-      //     audioRecorderPlayer.mmssss(Math.floor(e.currentPosition)),
-      //   );
-      //   return;
-      // });
       console.log('Started: ', result);
     } catch (err) {
       setIsRecording(false);
@@ -374,21 +275,8 @@ const TakeVoiceModal = (props: any) => {
     setIsRecording(false);
     try {
       const result = await audioRecorderPlayer.stopRecorder();
-      // audioRecorderPlayer.removeRecordBackListener();
-      // setRecordSecs(0);
-      // setIsRecording(false);
-
       console.log('Stopted: ', result);
       setAudioPath(result);
-
-      // let remote_audio_url;
-      // try {
-      //   remote_audio_url = await uploadAudioFile(result);
-      //   console.log('Recorded Sound Uploded URL: ' + remote_audio_url);
-      //   setAudioPath(remote_audio_url);
-      // } catch (error) {
-      //   console.log('Error uploading sound: ' + error);
-      // }
     } catch (err) {
       console.log('Audio stop error: ', err);
     }
@@ -399,14 +287,7 @@ const TakeVoiceModal = (props: any) => {
       console.log('onStartPlay');
       const msg = await audioRecorderPlayer.startPlayer();
       console.log(msg);
-      audioRecorderPlayer.addPlayBackListener(e => {
-        console.log(e);
-        setCurrentPositionSec(e.currentPosition);
-        setCurrentDurationSec(e.duration);
-        setPlayTime(audioRecorderPlayer.mmssss(Math.floor(e.currentPosition)));
-        setDuration(audioRecorderPlayer.mmssss(Math.floor(e.duration)));
-        return;
-      });
+      return;
     } catch (error) {
       console.log('Audio start error: ', error);
     }
@@ -522,8 +403,7 @@ const TakeVoiceModal = (props: any) => {
               }}
               onPressIn={async () => {
                 try {
-                  const result = await checkAndroidPermission();
-                  console.log('Checking Android Permission Result: ', result);
+                  await checkAudioPermission();
                   onStartRecord();
                 } catch (error) {
                   console.log('ERROR: ', error);
