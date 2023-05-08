@@ -17,7 +17,7 @@ const GradientView: FunctionComponent<GradientViewProps> = (
       colors={['#02BE9A', '#00DF8F']}
       start={{x: 0.424, y: 0.485}}
       end={{x: 0.995, y: 0.87}}
-      locations={[0.101, 0.733, 1]}
+      locations={[0.101, 0.733]}
       style={{...passedStyles}}>
       {children}
     </LinearGradient>
