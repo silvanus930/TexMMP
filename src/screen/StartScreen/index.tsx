@@ -9,6 +9,7 @@ import IoniconsIcon from 'react-native-vector-icons/Ionicons';
 import { TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import ImageSequence from 'react-native-image-sequence-2';
+import R from 'res/R';
 
 const StartScreen = () => {
   const carouselRef = useRef(null);
@@ -43,42 +44,42 @@ const StartScreen = () => {
       text: 'Building a new world with TexMMP',
     },
   ];
-  const imageSources = [
-    require('res/images/bot/0001.png'),
-    require('res/images/bot/0002.png'),
-    require('res/images/bot/0003.png'),
-    require('res/images/bot/0004.png'),
-    require('res/images/bot/0005.png'),
-    require('res/images/bot/0006.png'),
-    require('res/images/bot/0007.png'),
-    require('res/images/bot/0008.png'),
-    require('res/images/bot/0009.png'),
-    require('res/images/bot/0010.png'),
-    require('res/images/bot/0011.png'),
-    require('res/images/bot/0012.png'),
-    require('res/images/bot/0013.png'),
-    require('res/images/bot/0014.png'),
-    require('res/images/bot/0015.png'),
-    require('res/images/bot/0016.png'),
-    require('res/images/bot/0017.png'),
-    require('res/images/bot/0018.png'),
-    require('res/images/bot/0019.png'),
-    require('res/images/bot/0020.png'),
-    require('res/images/bot/0021.png'),
-  ];
+  // const imageSources = [
+  //   require('res/images/bot/0001.png'),
+  //   require('res/images/bot/0002.png'),
+  //   require('res/images/bot/0003.png'),
+  //   require('res/images/bot/0004.png'),
+  //   require('res/images/bot/0005.png'),
+  //   require('res/images/bot/0006.png'),
+  //   require('res/images/bot/0007.png'),
+  //   require('res/images/bot/0008.png'),
+  //   require('res/images/bot/0009.png'),
+  //   require('res/images/bot/0010.png'),
+  //   require('res/images/bot/0011.png'),
+  //   require('res/images/bot/0012.png'),
+  //   require('res/images/bot/0013.png'),
+  //   require('res/images/bot/0014.png'),
+  //   require('res/images/bot/0015.png'),
+  //   require('res/images/bot/0016.png'),
+  //   require('res/images/bot/0017.png'),
+  //   require('res/images/bot/0018.png'),
+  //   require('res/images/bot/0019.png'),
+  //   require('res/images/bot/0020.png'),
+  //   require('res/images/bot/0021.png'),
+  // ];
 
   return (
     <GradientView style={{ flex: 1 }}>
-      <ImageSequence
+      {/* <ImageSequence
         images={imageSources}
         startFrameIndex={0}
         style={{ flex: 1.5, marginTop: 50 }}
-      />
-      {/* <FastImage
-        resizeMode="contain"
-        style={[{ flex: 2 }, imageStyle]}
-        source={imageSources[index.value]}
       /> */}
+      <FastImage
+        resizeMode="contain"
+        style={[{ flex: 2 },]}
+        source={require('res/images/robot.png')}
+      />
       <View flex>
         <View>
           <Carousel
