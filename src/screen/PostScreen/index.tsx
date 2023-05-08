@@ -116,7 +116,6 @@ const PostScreen = () => {
       );
       console.log('result: ' + result);
       setIsWaiting(false);
-      setText(result);
       setUri(result);
     } catch (error) {
       console.log('createSelfIntroVideo Error: ');
@@ -125,6 +124,9 @@ const PostScreen = () => {
   };
 
   const [uri, setUri] = useState('');
+
+  const [hashTag, setHashTag] = useState('');
+  const [comments, setComments] = useState('');
 
   return (
     <GradientView style={{ flex: 1 }}>
@@ -142,44 +144,46 @@ const PostScreen = () => {
           AI Text to Video
         </Text>
       </SafeAreaView>
-      {/* <View flex bg-white /> */}
-      <View flex bg-light style={{ justifyContent: 'flex-end' }}>
-        <View>
-          <Video
-            source={{ uri: uri }}
-            style={{
-              margin: 12,
-              backgroundColor: R.colours.dark,
-              height: 250,
-              borderRadius: 5,
-            }}
-            resizeMode="cover"
-            repeat={true}
-            controls={true}
-          />
-          <Button
-            style={{
-              ...styles.signInButton,
-            }}
-            onPress={handleVideoGenerate}>
-            <View>
-              {!isWaiting ? (
-                <Text text75Bold center light>
-                  {'Generate Video'}
-                </Text>
-              ) : (
-                <ActivityIndicator />
-              )}
-            </View>
-          </Button>
-          <StepIndicator
-            customStyles={customStyles}
-            currentPosition={currentPosition}
-            labels={labels}
-            stepCount={4}
-          />
-        </View>
-        <ScrollView>
+
+      <ScrollView>
+        {/* <View flex bg-white /> */}
+        <View flex bg-light style={{ justifyContent: 'flex-end' }}>
+          <View>
+            <Video
+              source={{ uri: uri }}
+              style={{
+                margin: 12,
+                backgroundColor: R.colours.dark,
+                height: 250,
+                borderRadius: 5,
+              }}
+              resizeMode="cover"
+              repeat={true}
+              controls={true}
+            />
+            <Button
+              style={{
+                ...styles.signInButton,
+              }}
+              onPress={handleVideoGenerate}>
+              <View>
+                {!isWaiting ? (
+                  <Text text75Bold center light>
+                    {'Generate Video'}
+                  </Text>
+                ) : (
+                  <ActivityIndicator />
+                )}
+              </View>
+            </Button>
+            <StepIndicator
+              customStyles={customStyles}
+              currentPosition={currentPosition}
+              labels={labels}
+              stepCount={4}
+            />
+          </View>
+
           {/* End SignIn Button */}
           <View flex padding-10 style={{ justifyContent: 'center' }}>
             <ToggleItem
@@ -216,14 +220,24 @@ const PostScreen = () => {
             />
           </View>
           <Text text80Bold purple marginL-20>
-            Video Url #
+            Hash Tag #
           </Text>
           <TextField
             hideUnderline
             multiline
             containerStyle={styles.textField}
             value={text}
-            onChangeText={value => setText(value)}
+            onChangeText={value => setHashTag(value)}
+          />
+          <Text text80Bold purple marginL-20>
+            Comments #
+          </Text>
+          <TextField
+            hideUnderline
+            multiline
+            containerStyle={styles.textField}
+            value={text}
+            onChangeText={value => setComments(value)}
           />
           <Button
             style={{
@@ -237,8 +251,8 @@ const PostScreen = () => {
             </View>
           </Button>
           {/* End SignIn Button */}
-        </ScrollView>
-      </View>
+        </View>
+      </ScrollView>
     </GradientView>
   );
 };
