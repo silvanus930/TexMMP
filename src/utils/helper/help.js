@@ -1,6 +1,3 @@
-import { AudioUtils } from 'react-native-audio';
-import { FileSystem } from 'react-native-unimodules';
-import RNFS from 'react-native-fs';
 import RNFetchBlob from 'rn-fetch-blob';
 
 import { createTalk, getTalkById } from './DID/did';
@@ -17,13 +14,13 @@ export async function createSelfIntroVideo(
   console.log('Audio URL: ' + local_audio_url);
   // upload image to online store
 
-  let remote_image_url;
-  try {
-    remote_image_url = await uploadImageFile(local_image_url);
-    console.log('Image URL: ' + remote_image_url);
-  } catch (error) {
-    console.log('Error uploading image: ' + error.message);
-  }
+  let remote_image_url = local_image_url;
+  // try {
+  //   remote_image_url = await uploadImageFile(local_image_url);
+  //   console.log('Image URL: ' + remote_image_url);
+  // } catch (error) {
+  //   console.log('Error uploading image: ' + error.message);
+  // }
 
   // add voice
   var formdata = new FormData();
@@ -114,14 +111,6 @@ export async function createSelfIntroVideo(
 
   // get result
   let response = await waitForTalkResult(talk_id);
-  // var timerId = setInterval(async () => {
-  //   response = await getTalkById(talk_id);
-
-  //   if (response.status == 'done') {
-  //     clearInterval(timerId);
-  //     console.log('Response URL: ' + response.result_url);
-  //   }
-  // }, 2000);
   console.log('Returing Response URL: ' + response);
   return response;
 }

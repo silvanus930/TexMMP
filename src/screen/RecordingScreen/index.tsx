@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Platform,
+  PermissionsAndroid,
 } from 'react-native';
 import Text from 'react-native-ui-lib/text';
 import View from 'react-native-ui-lib/view';
@@ -13,6 +14,7 @@ import Button from 'react-native-ui-lib/button';
 import Modal from 'react-native-ui-lib/modal';
 import R from 'res/R';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { BarIndicator, BallIndicator } from 'react-native-indicators';
 import {
   IoniconsIcon,
   FontAwesomeIcon,
@@ -24,16 +26,18 @@ import FastImage from 'react-native-fast-image';
 import DocumentPicker from 'react-native-document-picker';
 import AudioRecorderPlayer from 'react-native-audio-recorder-player';
 import { PERMISSIONS, request } from 'react-native-permissions';
+import { uploadAudioFile, uploadImageFile } from 'src/utils/helper/Utils/uploadUtil';
+import RNFetchBlob from 'rn-fetch-blob';
 
 const audioRecorderPlayer = new AudioRecorderPlayer();
 
 const Card = (props: any) => {
-  const { icon, text, onPress } = props;
+  const { icon, text, onPress, uri } = props;
   return (
     <TouchableOpacity activeOpacity={0.7} onPress={onPress}>
       <GradientView
         style={{
-          height: Platform.OS === 'ios' ? 150 : 130,
+          height: Platform.OS === 'ios' ? 150 : 150,
           borderRadius: 16,
           marginVertical: 10,
           alignItems: 'center',
@@ -43,7 +47,10 @@ const Card = (props: any) => {
           center
           marginT-20
           style={{ width: 70, height: 70, borderRadius: 100 }}>
-          <FontAwesomeIcon name={icon} size={30} color={R.colours.greenDark} />
+          <FontAwesomeIcon name={icon} size={40} color={R.colours.greenDark} />
+          {uri?.length > 0 && <View style={{ position: 'absolute', right: 5, bottom: 5 }}>
+            <FontAwesomeIcon name={'check'} size={30} color={R.colours.greenBright} />
+          </View>}
         </View>
         <Text marginT-10 text80Bold light>
           {text}
@@ -56,6 +63,7 @@ const Card = (props: any) => {
 const TakeSelfiModal = (props: any) => {
   const { show, setShow, setUri } = props;
   const [imagePath, setImagePath] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
   const handleClose = () => {
     setShow(!show);
   };
@@ -63,6 +71,38 @@ const TakeSelfiModal = (props: any) => {
     setUri(imagePath);
     setShow(!show);
   };
+
+  const uploadImageToRemote = async (uri: string) => {
+    setIsUploading(true);
+    let remote_audio_url;
+    try {
+      remote_audio_url = await uploadAudioFile(uri);
+      console.log('Recorded Sound Uploded URL: ' + remote_audio_url);
+      setImagePath(remote_audio_url);
+    } catch (error) {
+      console.log('Error uploading sound: ' + error);
+    }
+    setIsUploading(false);
+  }
+
+  const handleFilePicker = async () => {
+    try {
+      try {
+        const pickerResult = await DocumentPicker.pickSingle({
+          presentationStyle: 'fullScreen',
+          copyTo: 'cachesDirectory',
+          type: [DocumentPicker.types.images],
+        });
+        console.log(pickerResult);
+        uploadImageToRemote(pickerResult.fileCopyUri || '');
+      } catch (error) {
+        console.log('FILE_PICKER_SELECTION_FAILED', error);
+      }
+    } catch (error) {
+      console.log('FILE_PICKER_SELECTION_FAILED', error);
+    }
+  };
+
   const handleOpenImageLibrary = async () => {
     const result =
       (Platform.OS === 'android' &&
@@ -101,6 +141,7 @@ const TakeSelfiModal = (props: any) => {
           if (res.assets) {
             const imageFile = res.assets[0];
             console.log(imageFile);
+            uploadImageToRemote(imageFile.uri || '');
           }
         });
       } catch (error) {
@@ -128,7 +169,7 @@ const TakeSelfiModal = (props: any) => {
               backgroundColor: 'white',
               marginBottom: -30,
             }}>
-            {(!imagePath || imagePath.length === 0) && (
+            {!isUploading && (!imagePath || imagePath.length === 0) && (
               <View
                 style={{
                   justifyContent: 'center',
@@ -141,7 +182,7 @@ const TakeSelfiModal = (props: any) => {
                 />
               </View>
             )}
-            {imagePath && imagePath.length > 0 && (
+            {!isUploading && imagePath && imagePath.length > 0 && (
               <View
                 style={{
                   justifyContent: 'center',
@@ -153,6 +194,9 @@ const TakeSelfiModal = (props: any) => {
                   source={{ uri: imagePath }}
                 />
               </View>
+            )}
+            {isUploading && (
+              <BallIndicator color={R.colours.greenDark} size={100} />
             )}
           </View>
           <View
@@ -188,7 +232,7 @@ const TakeSelfiModal = (props: any) => {
                 margin: 3,
                 backgroundColor: R.colours.greenDark,
               }}
-              onPress={handleOpenImageLibrary}>
+              onPress={handleFilePicker}>
               <MaterialIcons
                 name={'add-photo-alternate'}
                 size={35}
@@ -224,6 +268,7 @@ const TakeVoiceModal = (props: any) => {
     setUri(audioPath);
     setShow(!show);
   };
+
   const [recordSecs, setRecordSecs] = useState(0);
   const [recordTime, setRecordTime] = useState('00:00:00');
   const [currentPositionSec, setCurrentPositionSec] = useState(0);
@@ -234,32 +279,81 @@ const TakeVoiceModal = (props: any) => {
   const [isRecording, setIsRecording] = useState(false);
   const [audioPath, setAudioPath] = useState('');
 
+  const checkAndroidPermission = async () => {
+    if (Platform.OS === 'android') {
+      try {
+        const grants = await PermissionsAndroid.requestMultiple([
+          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+          PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
+        ]);
+
+        console.log('write external stroage', grants);
+
+        if (
+          grants['android.permission.WRITE_EXTERNAL_STORAGE'] ===
+          PermissionsAndroid.RESULTS.GRANTED &&
+          grants['android.permission.READ_EXTERNAL_STORAGE'] ===
+          PermissionsAndroid.RESULTS.GRANTED &&
+          grants['android.permission.RECORD_AUDIO'] ===
+          PermissionsAndroid.RESULTS.GRANTED
+        ) {
+          console.log('Permissions granted');
+        } else {
+          console.log('All required permissions not granted');
+          return grants;
+        }
+      } catch (err) {
+        console.warn(err);
+        return;
+      }
+    }
+  }
+
   const onStartRecord = async () => {
     // const path = 'test.mp3';
+    const dirs = RNFetchBlob.fs.dirs;
+    const path = Platform.select({
+      ios: 'hello.m4a',
+      android: `${dirs.CacheDir}/hello.mp3`,
+    });
+
     try {
-      const result = await audioRecorderPlayer.startRecorder();
       setIsRecording(true);
-      audioRecorderPlayer.addRecordBackListener(e => {
-        setRecordSecs(e.currentPosition);
-        setRecordTime(
-          audioRecorderPlayer.mmssss(Math.floor(e.currentPosition)),
-        );
-        return;
-      });
-      console.log(result);
+      const result = await audioRecorderPlayer.startRecorder(path);
+      // audioRecorderPlayer.addRecordBackListener(e => {
+      //   setRecordSecs(e.currentPosition);
+      //   setRecordTime(
+      //     audioRecorderPlayer.mmssss(Math.floor(e.currentPosition)),
+      //   );
+      //   return;
+      // });
+      console.log('Started: ', result);
     } catch (err) {
+      setIsRecording(false);
       console.log('Audio recorder error: ' + err);
     }
   };
 
   const onStopRecord = async () => {
+    setIsRecording(false);
     try {
       const result = await audioRecorderPlayer.stopRecorder();
-      audioRecorderPlayer.removeRecordBackListener();
-      setRecordSecs(0);
-      setIsRecording(false);
+      // audioRecorderPlayer.removeRecordBackListener();
+      // setRecordSecs(0);
+      // setIsRecording(false);
+
+      console.log('Stopted: ', result);
       setAudioPath(result);
-      console.log(result);
+
+      // let remote_audio_url;
+      // try {
+      //   remote_audio_url = await uploadAudioFile(result);
+      //   console.log('Recorded Sound Uploded URL: ' + remote_audio_url);
+      //   setAudioPath(remote_audio_url);
+      // } catch (error) {
+      //   console.log('Error uploading sound: ' + error);
+      // }
     } catch (err) {
       console.log('Audio stop error: ', err);
     }
@@ -332,17 +426,17 @@ const TakeVoiceModal = (props: any) => {
               backgroundColor: 'white',
               marginBottom: -30,
             }}>
-            {(isRecording || audioPath.length === 0) && (
+            {(isRecording) && (
               <View
                 flex
                 style={{
                   justifyContent: 'center',
                   alignItems: 'center',
                 }}>
-                <FontAwesome5Icon
-                  name={'microphone-alt'}
-                  size={250}
-                  color={!isRecording ? R.colours.greenDark : '#555500'}
+                <BarIndicator
+                  count={5}
+                  size={100}
+                  color={R.colours.greenDark}
                 />
               </View>
             )}
@@ -354,13 +448,23 @@ const TakeVoiceModal = (props: any) => {
                   justifyContent: 'center',
                   alignItems: 'center',
                 }}
-                onPress={onStartPlay}>
+                onPress={() => { }}>
+                {/* onPress={onStartPlay}> */}
                 <FontAwesome5Icon
                   name={'play-circle'}
                   size={250}
                   color={R.colours.greenDark}
                 />
               </TouchableOpacity>
+            )}
+            {!isRecording && audioPath.length === 0 && (
+              <View margin-20>
+                <Text text70Bold margin-5>{`1. Audio Record`}</Text>
+                <Text text60Bold>{`   - Tapping In Record Button and start Audio Record.`}</Text>
+                <Text text60Bold>{`   - Tapping Out this Button and stop Audio Record.\n`}</Text>
+                <Text text70Bold margin-5>{`2. Audio File Select`}</Text>
+                <Text text60Bold>{`   - Tapping the Audio File Button and get Audio File from storage.\n`}</Text>
+              </View>
             )}
           </View>
           <View
@@ -378,8 +482,14 @@ const TakeVoiceModal = (props: any) => {
                 margin: 3,
                 backgroundColor: R.colours.greenDark,
               }}
-              onPressIn={() => {
-                onStartRecord();
+              onPressIn={async () => {
+                try {
+                  const result = await checkAndroidPermission();
+                  console.log('Checking Android Permission Result: ', result);
+                  onStartRecord();
+                } catch (error) {
+                  console.log('ERROR: ', error);
+                }
               }}
               onPressOut={() => onStopRecord()}>
               <IoniconsIcon
@@ -457,6 +567,7 @@ const RecordingScreen = () => {
           <Card
             icon="camera-retro"
             text="Take a Selfie"
+            uri={imageUri}
             onPress={() => {
               setShowPhotoModal(!showPhotoModal);
             }}
@@ -464,6 +575,7 @@ const RecordingScreen = () => {
           <Card
             icon="microphone"
             text="Record Your Voice"
+            uri={audioUri}
             onPress={() => {
               setShowVoiceModal(!showVoiceModal);
             }}
@@ -471,7 +583,7 @@ const RecordingScreen = () => {
           <Card
             icon="address-card"
             text="Record Your Profile"
-            onPress={() => {}}
+            onPress={() => { }}
           />
         </View>
         <Button

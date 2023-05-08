@@ -9,8 +9,6 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import Video from 'react-native-video';
-// import VideoPlayer from 'react-native-video-controls';
-import VideoPlayer from 'react-native-video-player';
 import Text from 'react-native-ui-lib/text';
 import View from 'react-native-ui-lib/view';
 import Button from 'react-native-ui-lib/button';
@@ -43,16 +41,16 @@ const ToggleItem = (props: any) => {
         <GradientView
           style={{
             flexDirection: 'row',
-            width: 70,
-            height: 70,
+            width: 50,
+            height: 50,
             borderRadius: 35,
             marginHorizontal: 10,
             alignItems: 'center',
             justifyContent: 'center',
           }}>
-          <FontAwesomeIcon name={icon} size={35} color={R.colours.light} />
+          <FontAwesomeIcon name={icon} size={28} color={R.colours.light} />
         </GradientView>
-        <Text marginL-10 text80Bold grey40 flex>
+        <Text marginL-10 text70Bold grey40 flex>
           {text}
         </Text>
         <Switch
@@ -129,12 +127,11 @@ const PostScreen = () => {
       <View flex bg-light style={{ justifyContent: 'flex-end' }}>
         <View>
           <Video
-            // source={require('res/r.mp4')}
             source={{ uri: uri }}
             style={{
               margin: 12,
-              backgroundColor: R.colours.gradient1,
-              height: 200,
+              backgroundColor: R.colours.dark,
+              height: 250,
               borderRadius: 5,
             }}
             resizeMode="cover"
