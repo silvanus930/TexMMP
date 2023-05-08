@@ -8,7 +8,11 @@ export async function createSelfIntroVideo(
   local_image_url,
   local_text,
   local_audio_url,
+  setCurrentPosition,
 ) {
+
+  let position = 0;
+
   console.log('Image URL: ' + local_image_url);
   console.log('Text: ' + local_text);
   console.log('Audio URL: ' + local_audio_url);
@@ -21,7 +25,11 @@ export async function createSelfIntroVideo(
   // } catch (error) {
   //   console.log('Error uploading image: ' + error.message);
   // }
-
+  
+  /// ========================================
+  setCurrentPosition(++position);
+  /// ========================================
+  
   // add voice
   var formdata = new FormData();
   formdata.append('name', 'voice');
@@ -84,6 +92,11 @@ export async function createSelfIntroVideo(
     console.log('Blob Error: ' + error.message);
   }
 
+  /// ================== Audio To Text ====================
+  setCurrentPosition(++position);
+  /// ========================================
+
+
   // try {
   //   const fileUri = await saveAudioFile(res);
   //   console.log(fileUri); // file URI of the saved audio file
@@ -100,6 +113,10 @@ export async function createSelfIntroVideo(
     console.log('Upload Audio File Error: ' + error.message);
   }
 
+  /// ================== Audio Upload ====================
+  setCurrentPosition(++position);
+  /// ========================================
+
   let talk_id;
   try {
     // generate self intro from image and audio
@@ -112,7 +129,14 @@ export async function createSelfIntroVideo(
   // get result
   let response = await waitForTalkResult(talk_id);
   console.log('Returing Response URL: ' + response);
+
+  /// ================== Generate Video ====================
+  setCurrentPosition(++position);
+  /// ========================================
+
   return response;
+
+
 }
 
 function waitForTalkResult(talk_id) {

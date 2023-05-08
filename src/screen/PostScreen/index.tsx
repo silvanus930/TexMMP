@@ -18,6 +18,7 @@ import { IoniconsIcon, FontAwesomeIcon } from 'res/icons';
 import { createSelfIntroVideo } from 'utils/helper/help';
 import { ScrollView } from 'react-native-gesture-handler';
 import TextField from 'react-native-ui-lib/textField';
+import StepIndicator from 'react-native-step-indicator';
 
 const ToggleItem = (props: any) => {
   const { icon, text, toggleSwitch } = props;
@@ -87,13 +88,31 @@ const PostScreen = () => {
   const [text, setText] = useState('');
   const [isWaiting, setIsWaiting] = useState(false);
 
+  const [currentPosition, setCurrentPosition] = useState(0);
+  const labels = ["Image Upload", "Audio Upload", "Text to Audio", "Generate Video"];
+  const customStyles = {
+    stepIndicatorSize: 30,
+    currentStepIndicatorSize: 30,
+    separatorStrokeWidth: 2,
+    currentStepStrokeWidth: 3,
+    stepStrokeWidth: 3,
+    stepIndicatorLabelFontSize: 13,
+    currentStepIndicatorLabelFontSize: 13,
+    stepIndicatorLabelCurrentColor: R.colours.greenBright,
+    labelSize: 13,
+  }
+
   const handlePost = async () => {
+  };
+
+  const handleVideoGenerate = async () => {
     try {
       setIsWaiting(true);
       const result = await createSelfIntroVideo(
         params.imageUri,
         params.text,
         params.audioUri,
+        setCurrentPosition,
       );
       console.log('result: ' + result);
       setIsWaiting(false);
@@ -142,7 +161,7 @@ const PostScreen = () => {
             style={{
               ...styles.signInButton,
             }}
-            onPress={handlePost}>
+            onPress={handleVideoGenerate}>
             <View>
               {!isWaiting ? (
                 <Text text75Bold center light>
@@ -153,6 +172,12 @@ const PostScreen = () => {
               )}
             </View>
           </Button>
+          <StepIndicator
+            customStyles={customStyles}
+            currentPosition={currentPosition}
+            labels={labels}
+            stepCount={4}
+          />
         </View>
         <ScrollView>
           {/* End SignIn Button */}
@@ -204,7 +229,7 @@ const PostScreen = () => {
             style={{
               ...styles.signInButton,
             }}
-            onPress={() => {}}>
+            onPress={handlePost}>
             <View>
               <Text text75Bold center light>
                 {'Post Now'}
