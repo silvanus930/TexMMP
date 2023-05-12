@@ -66,6 +66,37 @@ const checkAndroidAudioPermission = async () => {
   }
 }
 
+const checkAndroidCameraPermission = async () => {
+  if (Platform.OS === 'android') {
+    try {
+      const grants = await PermissionsAndroid.requestMultiple([
+        PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+        PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+        PermissionsAndroid.PERMISSIONS.CAMERA,
+      ]);
+
+      console.log('write external stroage', grants);
+
+      if (
+        grants['android.permission.WRITE_EXTERNAL_STORAGE'] ===
+        PermissionsAndroid.RESULTS.GRANTED &&
+        grants['android.permission.READ_EXTERNAL_STORAGE'] ===
+        PermissionsAndroid.RESULTS.GRANTED &&
+        grants['android.permission.CAMERA'] ===
+        PermissionsAndroid.RESULTS.GRANTED
+      ) {
+        console.log('Permissions granted');
+      } else {
+        console.log('All required permissions not granted');
+        return grants;
+      }
+    } catch (err) {
+      console.warn(err);
+      return;
+    }
+  }
+}
+
 const Card = (props: any) => {
   const { icon, text, onPress, uri } = props;
   return (
@@ -508,7 +539,7 @@ const RecordingScreen = () => {
             text="Take a Selfie"
             uri={imageUri}
             onPress={() => {
-              checkAndroidAudioPermission();
+              checkAndroidCameraPermission();
               setShowPhotoModal(!showPhotoModal);
             }}
           />
@@ -517,6 +548,7 @@ const RecordingScreen = () => {
             text="Record Your Voice"
             uri={audioUri}
             onPress={() => {
+              checkAndroidAudioPermission();
               setShowVoiceModal(!showVoiceModal);
             }}
           />

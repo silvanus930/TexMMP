@@ -13,6 +13,7 @@ build/
 .idea
 .gradle
 local.properties
+*.android.bundle
 *.iml
 *.hprof
 
@@ -52,3 +53,5 @@ vendor/
 
 # Ruby
 .ruby-version
+
+
