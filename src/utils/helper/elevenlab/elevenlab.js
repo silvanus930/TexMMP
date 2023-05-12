@@ -43,3 +43,19 @@ export async function addVoice(formData) {
   //   "voice_id": "string"
   // }
 }
+export async function deleteVoice(voice_id) {
+  var requestOptions = {
+    method: 'DELETE',
+    headers: {
+      'xi-api-key': ELEVENAPIKEY,
+    },
+  };
+
+  const response = await fetch(
+    `https://api.elevenlabs.io/v1/voices/${voice_id}`,
+    requestOptions,
+  );
+  
+  console.log('Eleven Delete Voices Response: ' + response);
+  return response;
+}
