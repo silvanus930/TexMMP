@@ -1,6 +1,6 @@
 /* eslint-disable react-native/no-inline-styles */
 import GradientView from 'component/GradientView';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   SafeAreaView,
   StyleSheet,
@@ -25,8 +25,13 @@ import { launchCamera } from 'react-native-image-picker';
 import FastImage from 'react-native-fast-image';
 import DocumentPicker from 'react-native-document-picker';
 import AudioRecorderPlayer from 'react-native-audio-recorder-player';
-import { uploadAudioFile, uploadImageFile } from 'src/utils/helper/Utils/uploadUtil';
+import { PERMISSIONS, request } from 'react-native-permissions';
+import {
+  uploadAudioFile,
+  uploadImageFile,
+} from 'src/utils/helper/Utils/uploadUtil';
 import RNFetchBlob from 'rn-fetch-blob';
+import { checkAudioPermission, checkCameraPermission } from 'src/utils/permission';
 
 const audioRecorderPlayer = new AudioRecorderPlayer();
 
@@ -78,9 +83,15 @@ const Card = (props: any) => {
           marginT-20
           style={{ width: 70, height: 70, borderRadius: 100 }}>
           <FontAwesomeIcon name={icon} size={40} color={R.colours.greenDark} />
-          {uri?.length > 0 && <View style={{ position: 'absolute', right: 5, bottom: 5 }}>
-            <FontAwesomeIcon name={'check'} size={30} color={R.colours.greenBright} />
-          </View>}
+          {uri?.length > 0 && (
+            <View style={{ position: 'absolute', right: 5, bottom: 5 }}>
+              <FontAwesomeIcon
+                name={'check'}
+                size={30}
+                color={R.colours.greenBright}
+              />
+            </View>
+          )}
         </View>
         <Text marginT-10 text80Bold light>
           {text}
@@ -104,16 +115,16 @@ const TakeSelfiModal = (props: any) => {
 
   const uploadImageToRemote = async (uri: string) => {
     setIsUploading(true);
-    let remote_audio_url;
+    let remote_image_uri;
     try {
-      remote_audio_url = await uploadAudioFile(uri);
-      console.log('Recorded Sound Uploded URL: ' + remote_audio_url);
-      setImagePath(remote_audio_url);
+      remote_image_uri = await uploadImageFile(uri);
+      console.log('Image Uploded URL: ' + remote_image_uri);
+      setImagePath(remote_image_uri);
     } catch (error) {
-      console.log('Error uploading sound: ' + error);
+      console.log('Error uploading image: ' + error);
     }
     setIsUploading(false);
-  }
+  };
 
   const handleFilePicker = async () => {
     try {
@@ -264,6 +275,10 @@ const TakeVoiceModal = (props: any) => {
     setShow(!show);
   };
 
+  useEffect(() => {
+    console.log(show);
+  }, [show, setShow, setUri])
+
   const [isRecording, setIsRecording] = useState(false);
   const [audioPath, setAudioPath] = useState('');
 
@@ -290,7 +305,6 @@ const TakeVoiceModal = (props: any) => {
       const result = await audioRecorderPlayer.stopRecorder();
       console.log('Stopted: ', result);
       setAudioPath(result);
-
     } catch (err) {
       console.log('Audio stop error: ', err);
     }
@@ -301,6 +315,7 @@ const TakeVoiceModal = (props: any) => {
       console.log('onStartPlay');
       const msg = await audioRecorderPlayer.startPlayer();
       console.log(msg);
+      return;
     } catch (error) {
       console.log('Audio start error: ', error);
     }
@@ -355,7 +370,7 @@ const TakeVoiceModal = (props: any) => {
               backgroundColor: 'white',
               marginBottom: -30,
             }}>
-            {(isRecording) && (
+            {isRecording && (
               <View
                 flex
                 style={{
@@ -377,7 +392,7 @@ const TakeVoiceModal = (props: any) => {
                   justifyContent: 'center',
                   alignItems: 'center',
                 }}
-                onPress={() => { }}>
+                onPress={() => {}}>
                 {/* onPress={onStartPlay}> */}
                 <FontAwesome5Icon
                   name={'play-circle'}
@@ -389,10 +404,13 @@ const TakeVoiceModal = (props: any) => {
             {!isRecording && audioPath.length === 0 && (
               <View margin-20>
                 <Text text70Bold margin-5>{`1. Audio Record`}</Text>
-                <Text text60Bold>{`   - Tapping In Record Button and start Audio Record.`}</Text>
-                <Text text60Bold>{`   - Tapping Out this Button and stop Audio Record.\n`}</Text>
+                <Text
+                  text60Bold>{`   - Tapping In Record Button and start Audio Record.`}</Text>
+                <Text
+                  text60Bold>{`   - Tapping Out this Button and stop Audio Record.\n`}</Text>
                 <Text text70Bold margin-5>{`2. Audio File Select`}</Text>
-                <Text text60Bold>{`   - Tapping the Audio File Button and get Audio File from storage.\n`}</Text>
+                <Text
+                  text60Bold>{`   - Tapping the Audio File Button and get Audio File from storage.\n`}</Text>
               </View>
             )}
           </View>
@@ -505,7 +523,7 @@ const RecordingScreen = () => {
           <Card
             icon="address-card"
             text="Record Your Profile"
-            onPress={() => { }}
+            onPress={() => {}}
           />
         </View>
         <Button
