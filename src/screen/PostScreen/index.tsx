@@ -89,7 +89,7 @@ const PostScreen = () => {
   const [isWaiting, setIsWaiting] = useState(false);
 
   const [currentPosition, setCurrentPosition] = useState(0);
-  const labels = ["Image Upload", "Audio Upload", "Text to Audio", "Generate Video"];
+  const labels = ["Image Upload", "Text to Audio", "Audio Upload", "Generate Video"];
   const customStyles = {
     stepIndicatorSize: 30,
     currentStepIndicatorSize: 30,

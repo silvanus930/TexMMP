@@ -25,11 +25,11 @@ export async function createSelfIntroVideo(
   // } catch (error) {
   //   console.log('Error uploading image: ' + error.message);
   // }
-  
+
   /// ========================================
   setCurrentPosition(++position);
   /// ========================================
-  
+
   // add voice
   var formdata = new FormData();
   formdata.append('name', 'voice');
@@ -57,6 +57,7 @@ export async function createSelfIntroVideo(
     console.log('Response from VoiceID: ' + res);
   } catch (error) {
     console.log('Text for Voice Error: ' + error.message);
+    return;
   }
 
   // console.log('Audio generated:' + JSON.stringify(res.body));
@@ -88,8 +89,10 @@ export async function createSelfIntroVideo(
     filePath = await saveBlobToFile(audioData, 'example.mp3');
     // const fileUrl = await saveBlobToFile(JSON.stringify(audioData), 'example.mp3');
     console.log('Audio Res Data: ' + filePath);
+    if (!filePath) return;
   } catch (error) {
     console.log('Blob Error: ' + error.message);
+    return;
   }
 
   /// ================== Audio To Text ====================
@@ -109,8 +112,10 @@ export async function createSelfIntroVideo(
   try {
     remote_audio_url = await uploadAudioFile(filePath);
     console.log(remote_audio_url);
+    if (!remote_audio_url) return;
   } catch (error) {
     console.log('Upload Audio File Error: ' + error.message);
+    return;
   }
 
   /// ================== Audio Upload ====================
@@ -122,8 +127,10 @@ export async function createSelfIntroVideo(
     // generate self intro from image and audio
     talk_id = await createTalk(remote_image_url, remote_audio_url);
     console.log('Talk ID: ' + talk_id);
+    if (!talk_id) return;
   } catch (error) {
     console.log('Create Self Video Error: ' + error.message);
+    return;
   }
 
   // get result
@@ -133,9 +140,7 @@ export async function createSelfIntroVideo(
   /// ================== Generate Video ====================
   setCurrentPosition(++position);
   /// ========================================
-
   return response;
-
 
 }
 

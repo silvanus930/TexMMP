@@ -23,6 +23,7 @@ export async function createTalk(source_url, audio_url) {
     }),
   });
   const result = await res.json();
+  console.log('Get Talking result: ', result);
   return result.id;
 }
 
