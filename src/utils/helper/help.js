@@ -1,7 +1,7 @@
 import RNFetchBlob from 'rn-fetch-blob';
 
 import { createTalk, getTalkById } from './DID/did';
-import { generateAudioWithVoiceAndText, addVoice } from './elevenlab/elevenlab';
+import { generateAudioWithVoiceAndText, addVoice, deleteVoice } from './elevenlab/elevenlab';
 import { uploadImageFile, uploadAudioFile } from './Utils/uploadUtil';
 
 export async function createSelfIntroVideo(
@@ -12,100 +12,81 @@ export async function createSelfIntroVideo(
 ) {
 
   let position = 0;
-
   console.log('Image URL: ' + local_image_url);
   console.log('Text: ' + local_text);
   console.log('Audio URL: ' + local_audio_url);
   // upload image to online store
 
   let remote_image_url = local_image_url;
-  // try {
-  //   remote_image_url = await uploadImageFile(local_image_url);
-  //   console.log('Image URL: ' + remote_image_url);
-  // } catch (error) {
-  //   console.log('Error uploading image: ' + error.message);
-  // }
 
-  /// ========================================
-  setCurrentPosition(++position);
-  /// ========================================
+/// ================== Image upload ====================
+setCurrentPosition(++position);
+/// =====================================================
 
   // add voice
   var formdata = new FormData();
   formdata.append('name', 'voice');
-  formdata.append('files', [
+  formdata.append('files', 
     {
       uri: local_audio_url,
       name: local_audio_url.split('/').pop(),
       type: 'audio/mpeg',
     },
-  ]);
+  );
 
-  let voice_id = 'W2TeetKrcgLVT9WkK3nK';
-  // let voice_id;
-  // try {
-  //   voice_id = await addVoice(formdata);
-  //   console.log('VoiceID for Eleventh: ' + voice_id);
-  // } catch (error) {
-  //   console.log('Voice for Eleven Error: ' + error.message);
-  // }
+  console.log('Form file data', {
+    uri: local_audio_url,
+    name: local_audio_url.split('/').pop(),
+    type: 'audio/mpeg',
+  });
+
+  // let voice_id = 'W2TeetKrcgLVT9WkK3nK';
+  let voice_id;
+  try {
+    voice_id = await addVoice(formdata);
+    console.log('VoiceID for Eleventh: ' + voice_id);
+    if (!voice_id) return;
+  } catch (error) {
+    console.log('Voice for Eleven Error: ' + error.message);
+    return;
+  }
 
   // generate audio with voice id and text
   let res;
+  let audioData;
+  let filePath;
   try {
     res = await generateAudioWithVoiceAndText(voice_id, local_text);
+    // audio stream to storage 
+    try {
+      audioData = await res.blob();
+      console.log('Audio Data: ' + JSON.stringify(audioData));
+      filePath = await saveBlobToFile(audioData, 'example.mp3');
+      console.log('Audio File Data: ' + filePath);
+
+      // remove voice id when create audio from text then save local storage
+      try {
+        const voiceIDRemoveResult = await deleteVoice(voice_id);
+        console.log('VoiceID Deleted: ', voice_id, voiceIDRemoveResult);
+      } catch (error) {
+        console.log('VoiceID Deletion Error: ' + error.message);
+        return;
+      }
+
+      if (!filePath) return;
+    } catch (error) {
+      console.log('Blob Error: ' + error.message);
+      return;
+    }
     console.log('Response from VoiceID: ' + res);
   } catch (error) {
     console.log('Text for Voice Error: ' + error.message);
     return;
   }
 
-  // console.log('Audio generated:' + JSON.stringify(res.body));
-  // var reader = res._bodyInit.getReader();
-  //     // when a value has been received
-
-  //     var r = await reader.read();
-  //     var val = [];
-  //     while(!r.done){
-  //       val.push(r.value);
-  //       r=await reader.read();
-  //     }
-  // var blob = new Blob(val, { type: 'audio/mpeg' });
-
-  // try {
-  //   const fileName = "example1.mp3";
-  //   const resData = await res.json();
-  //   console.log('ResData: ' + JSON.stringify(resData));
-  //   const fileUrl = await saveBlobToFile(JSON.stringify(resData), fileName);
-  //   console.log(fileUrl);
-  // } catch (error) {
-  //   console.log('Save to File Efrror:  ', error.message);
-  // }
-  let audioData;
-  let filePath;
-  try {
-    audioData = await res.blob();
-    console.log('Audio Data: ' + JSON.stringify(audioData));
-    filePath = await saveBlobToFile(audioData, 'example.mp3');
-    // const fileUrl = await saveBlobToFile(JSON.stringify(audioData), 'example.mp3');
-    console.log('Audio Res Data: ' + filePath);
-    if (!filePath) return;
-  } catch (error) {
-    console.log('Blob Error: ' + error.message);
-    return;
-  }
-
   /// ================== Audio To Text ====================
   setCurrentPosition(++position);
-  /// ========================================
-
-
-  // try {
-  //   const fileUri = await saveAudioFile(res);
-  //   console.log(fileUri); // file URI of the saved audio file
-  // } catch (error) {
-  //   console.log('Save Audio File Error: ' + error.message);
-  // }
+  /// =====================================================
 
   let remote_audio_url;
 
@@ -133,7 +114,7 @@ export async function createSelfIntroVideo(
     return;
   }
 
-  // get result
+  // getting result
   let response = await waitForTalkResult(talk_id);
   console.log('Returing Response URL: ' + response);
 
@@ -141,26 +122,36 @@ export async function createSelfIntroVideo(
   setCurrentPosition(++position);
   /// ========================================
   return response;
-
 }
 
 function waitForTalkResult(talk_id) {
   return new Promise(async (resolve, reject) => {
+    const maxWaitingTime = 30 * 1000; // 30 seconds
+    let elapsedTime = 0;
+
     const timerId = setInterval(async () => {
       try {
         const response = await getTalkById(talk_id);
+        console.log('elapted Time: ', elapsedTime);
         if (response.status === 'done') {
           clearInterval(timerId);
-          console.log('Resonese URL:', response.result_url);
+          console.log('Response URL:', response.result_url);
           resolve(response.result_url);
         }
       } catch (error) {
         clearInterval(timerId);
         reject(error);
       }
+
+      elapsedTime += 2000; // Interval is set to 2000 milliseconds (2 seconds)
+      if (elapsedTime >= maxWaitingTime) {
+        clearInterval(timerId);
+        reject(new Error('Maximum waiting time exceeded. Seems like network issue. Please try again later.'));
+      }
     }, 2000);
   });
 }
+
 
 const saveBlobToFile = async (blobData, filePath) => {
   const dirs = RNFetchBlob.fs.dirs;

@@ -17,6 +17,7 @@ export async function createTalk(source_url, audio_url) {
       config: {
         fluent: 'false',
         pad_audio: '0.0',
+        stitch: true,
       },
       source_url: source_url,
       driver_url: 'bank://lively',
